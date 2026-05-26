@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍳 Decisor Aleatório de Jantares</title>
+
+  <!-- Fonte moderna do Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* =============================================
+       VARIÁVEIS DE COR — edite aqui para mudar tema
+       ============================================= */
+    :root {
+      --laranja:      #ff6b35;
+      --laranja-claro:#ff9a5c;
+      --vermelho:     #e63946;
+      --amarelo:      #ffd166;
+      --amarelo-claro:#fff3cd;
+      --verde:        #06d6a0;
+      --branco:       #fff8f0;
+      --texto:        #2d2d2d;
+      --texto-leve:   #7a6a5a;
+      --sombra:       rgba(255, 107, 53, 0.2);
+    }
+
+    /* =============================================
+       RESET E BASE
+       ============================================= */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--branco);
+      color: var(--texto);
+      overflow-x: hidden;
+    }
+
+    /* =============================================
+       ANIMAÇÕES
+       ============================================= */
+
+    /* Aparece suavemente de baixo para cima */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Balançar divertido */
+    @keyframes balanco {
+      0%, 100% { transform: rotate(-3deg); }
+      50%       { transform: rotate(3deg); }
+    }
+
+    /* Pulso no botão principal */
+    @keyframes pulso {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,107,53,0.5); }
+      50%       { box-shadow: 0 0 0 12px rgba(255,107,53,0); }
+    }
+
+    /* Quicar emojis flutuantes */
+    @keyframes flutuar {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-14px); }
+    }
+
+    /* =============================================
+       EMOJIS FLUTUANTES DE FUNDO
+       ============================================= */
+    .emoji-flutuante {
+      position: fixed;       /* fica fixo na tela */
+      font-size: 2rem;
+      opacity: 0.12;
+      pointer-events: none;  /* não interfere no clique */
+      animation: flutuar linear infinite;
+      user-select: none;
+      z-index: 0;
+    }
+
+    /* Posições e atrasos diferentes para cada emoji */
+    .e1 { top: 8%;  left: 3%;  animation-duration: 4s; }
+    .e2 { top: 20%; right: 5%; animation-duration: 5s; animation-delay: 0.5s; }
+    .e3 { top: 45%; left: 7%;  animation-duration: 3.5s; animation-delay: 1s; }
+    .e4 { top: 65%; right: 4%; animation-duration: 4.5s; animation-delay: 0.8s; }
+    .e5 { top: 80%; left: 5%;  animation-duration: 3s;  animation-delay: 1.5s; }
+    .e6 { top: 5%;  right: 15%;animation-duration: 6s;  animation-delay: 0.3s; }
+    .e7 { top: 55%; left: 2%;  animation-duration: 4s;  animation-delay: 2s; }
+    .e8 { top: 90%; right: 8%; animation-duration: 5s;  animation-delay: 0.7s; }
+
+    /* =============================================
+       CABEÇALHO
+       ============================================= */
+    header {
+      background: linear-gradient(135deg, var(--vermelho) 0%, var(--laranja) 50%, var(--amarelo) 100%);
+      text-align: center;
+      padding: 70px 24px 60px;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    /* Bolhas decorativas no fundo do header */
+    header::before {
+      content: '';
+      position: absolute;
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      top: -100px; left: -60px;
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      bottom: -60px; right: -30px;
+    }
+
+    /* Emoji grande do cabeçalho com balanço */
+    .header-emoji {
+      font-size: 5rem;
+      display: block;
+      margin-bottom: 16px;
+      animation: balanco 2s ease-in-out infinite;
+      position: relative;
+      z-index: 2;
+    }
+
+    header h1 {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(2rem, 6vw, 3.8rem); /* responsivo */
+      color: white;
+      text-shadow: 3px 3px 0px rgba(0,0,0,0.15);
+      position: relative;
+      z-index: 2;
+      margin-bottom: 12px;
+    }
+
+    header p {
+      font-size: clamp(1rem, 2.5vw, 1.2rem);
+      color: rgba(255,255,255,0.9);
+      font-weight: 600;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* =============================================
+       ÁREA PRINCIPAL
+       ============================================= */
+    main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 48px 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* =============================================
+       CAIXA DE INGREDIENTES
+       ============================================= */
+    .caixa-ingredientes {
+      background: white;
+      border-radius: 24px;
+      padding: 36px;
+      box-shadow: 0 8px 40px var(--sombra);
+      border: 2px solid var(--amarelo);
+      margin-bottom: 32px;
+      animation: fadeUp 0.7s ease both;
+    }
+
+    .caixa-ingredientes h2 {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.6rem;
+      color: var(--laranja);
+      margin-bottom: 8px;
+    }
+
+    .caixa-ingredientes .dica {
+      font-size: 0.88rem;
+      color: var(--texto-leve);
+      margin-bottom: 20px;
+    }
+
+    /* Campo de texto grande */
+    #campo-ingredientes {
+      width: 100%;
+      padding: 16px 20px;
+      border: 2.5px solid var(--amarelo);
+      border-radius: 16px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem;
+      color: var(--texto);
+      background: var(--amarelo-claro);
+      outline: none;
+      resize: vertical;          /* usuário pode redimensionar */
+      min-height: 110px;
+      transition: border-color 0.25s;
+      line-height: 1.6;
+    }
+
+    #campo-ingredientes:focus {
+      border-color: var(--laranja);
+    }
+
+    /* ── BOTÕES ── */
+    .grupo-botoes {
+      display: flex;
+      gap: 14px;
+      margin-top: 22px;
+      flex-wrap: wrap; /* quebra linha em tela pequena */
+    }
+
+    /* Botão principal */
+    .btn-principal {
+      flex: 1;
+      min-width: 200px;
+      padding: 16px 24px;
+      background: linear-gradient(135deg, var(--vermelho), var(--laranja));
+      color: white;
+      border: none;
+      border-radius: 16px;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.15rem;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      animation: pulso 2.5s ease-in-out infinite;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-principal:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 10px 32px rgba(230,57,70,0.4);
+    }
+
+    /* Botão secundário */
+    .btn-secundario {
+      flex: 1;
+      min-width: 160px;
+      padding: 16px 24px;
+      background: white;
+      color: var(--laranja);
+      border: 2.5px solid var(--laranja);
+      border-radius: 16px;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: none; /* escondido até a 1ª geração */
+    }
+
+    .btn-secundario:hover {
+      background: var(--laranja);
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    /* =============================================
+       CARD DE RESULTADO
+       ============================================= */
+    #card-resultado {
+      display: none; /* escondido até gerar receita */
+      background: white;
+      border-radius: 24px;
+      padding: 36px;
+      box-shadow: 0 12px 50px var(--sombra);
+      border-left: 6px solid var(--laranja);
+      margin-bottom: 32px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .resultado-topo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .resultado-emoji {
+      font-size: 3.5rem;
+      flex-shrink: 0;
+    }
+
+    .resultado-topo h3 {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.05rem;
+      color: var(--texto-leve);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Nome da receita gerada */
+    #nome-receita {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      color: var(--vermelho);
+      line-height: 1.2;
+    }
+
+    /* Descrição/modo de preparo */
+    #descricao-receita {
+      background: var(--amarelo-claro);
+      border-radius: 14px;
+      padding: 18px 20px;
+      font-size: 1rem;
+      color: var(--texto);
+      line-height: 1.75;
+      border-left: 4px solid var(--amarelo);
+      margin-bottom: 16px;
+    }
+
+    /* Tags dos ingredientes detectados */
+    .tags-ingredientes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      background: linear-gradient(135deg, var(--laranja-claro), var(--amarelo));
+      color: white;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    /* =============================================
+       SEÇÃO "RECEITAS INSANAS DO DIA"
+       ============================================= */
+    .secao-insanas {
+      margin-top: 16px;
+      animation: fadeUp 0.7s ease 0.3s both;
+    }
+
+    .secao-insanas h2 {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.8rem;
+      color: var(--vermelho);
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
+    .secao-insanas .subtitulo {
+      text-align: center;
+      color: var(--texto-leve);
+      font-size: 0.9rem;
+      margin-bottom: 28px;
+    }
+
+    /* Grade dos cards fixos */
+    .grade-insanas {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+    }
+
+    /* Card fixo de receita insana */
+    .card-insana {
+      background: white;
+      border-radius: 20px;
+      padding: 28px 22px;
+      text-align: center;
+      box-shadow: 0 4px 24px var(--sombra);
+      border-top: 5px solid var(--laranja);
+      transition: transform 0.25s, box-shadow 0.25s;
+      cursor: default;
+    }
+
+    .card-insana:nth-child(2) { border-top-color: var(--vermelho); }
+    .card-insana:nth-child(3) { border-top-color: var(--verde); }
+
+    .card-insana:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 14px 40px var(--sombra);
+    }
+
+    .card-insana .ci-emoji { font-size: 3rem; display: block; margin-bottom: 12px; }
+
+    .card-insana h3 {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.15rem;
+      color: var(--texto);
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+
+    .card-insana p {
+      font-size: 0.85rem;
+      color: var(--texto-leve);
+      line-height: 1.65;
+    }
+
+    /* Badge "Tendência" */
+    .badge {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      background: var(--amarelo-claro);
+      color: var(--laranja);
+    }
+
+    /* =============================================
+       RODAPÉ
+       ============================================= */
+    footer {
+      background: var(--texto);
+      color: rgba(255,255,255,0.75);
+      text-align: center;
+      padding: 28px;
+      font-size: 0.9rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    footer span { color: var(--amarelo); }
+
+  </style>
+</head>
+<body>
+
+  <!-- =============================================
+       EMOJIS FLUTUANTES DECORATIVOS
+       ============================================= -->
+  <div class="emoji-flutuante e1">🍕</div>
+  <div class="emoji-flutuante e2">🥚</div>
+  <div class="emoji-flutuante e3">🧄</div>
+  <div class="emoji-flutuante e4">🍅</div>
+  <div class="emoji-flutuante e5">🧀</div>
+  <div class="emoji-flutuante e6">🌶️</div>
+  <div class="emoji-flutuante e7">🥕</div>
+  <div class="emoji-flutuante e8">🍋</div>
+
+
+  <!-- ── CABEÇALHO ── -->
+  <header>
+    <span class="header-emoji">🍳</span>
+    <h1>Decisor Aleatório de Jantares</h1>
+    <p>Digite seus ingredientes e descubra o que jantar hoje!</p>
+  </header>
+
+
+  <!-- ── ÁREA PRINCIPAL ── -->
+  <main>
+
+    <!-- Caixa de entrada de ingredientes -->
+    <div class="caixa-ingredientes">
+      <h2>📦 O que tem na sua geladeira?</h2>
+      <p class="dica">Digite os ingredientes separados por vírgula — quanto mais, mais criativo fica! 🎲</p>
+
+      <!-- Campo de texto -->
+      <textarea
+        id="campo-ingredientes"
+        placeholder="Ex.: arroz, ovo, tomate, queijo, alho..."
+      ></textarea>
+
+      <!-- Botões -->
+      <div class="grupo-botoes">
+        <button class="btn-principal" onclick="gerarReceita()">
+          🎲 Gerar Receita Maluca!
+        </button>
+        <button class="btn-secundario" id="btn-outra" onclick="gerarReceita()">
+          🔀 Gerar Outra Ideia
+        </button>
+      </div>
+    </div>
+
+
+    <!-- Card do resultado (aparece após gerar) -->
+    <div id="card-resultado">
+      <div class="resultado-topo">
+        <span class="resultado-emoji" id="emoji-resultado">🍳</span>
+        <div>
+          <h3>✨ Sua receita do dia é...</h3>
+          <div id="nome-receita">Carregando...</div>
+        </div>
+      </div>
+
+      <!-- Modo de preparo gerado -->
+      <div id="descricao-receita"></div>
+
+      <!-- Tags dos ingredientes digitados -->
+      <div class="tags-ingredientes" id="tags-ingredientes"></div>
+    </div>
+
+
+    <!-- ── RECEITAS INSANAS DO DIA ── -->
+    <div class="secao-insanas">
+      <h2>🔥 Receitas Insanas do Dia</h2>
+      <p class="subtitulo">Inspirações malucas que alguém já tentou (e sobreviveu)</p>
+
+      <div class="grade-insanas">
+
+        <!-- Card fixo 1 -->
+        <div class="card-insana">
+          <span class="ci-emoji">🍌🥩</span>
+          <h3>Bife à Banana Caramelizada Turbo</h3>
+          <p>
+            Fritar o bife, caramelizar banana com mel e mostarda,
+            montar em cima da carne. Servir com arroz de cúrcuma
+            e fingir que é gourmet.
+          </p>
+          <span class="badge">🏆 Clássico suspeito</span>
+        </div>
+
+        <!-- Card fixo 2 -->
+        <div class="card-insana">
+          <span class="ci-emoji">🍕🍳</span>
+          <h3>Pizza-Omelete Suprema do Fim do Mês</h3>
+          <p>
+            Bater 4 ovos, jogar restos de pizza do dia anterior
+            na frigideira, dobrar ao meio e chamar de "quiche".
+            Ninguém vai questionar.
+          </p>
+          <span class="badge">💸 Econômica de luxo</span>
+        </div>
+
+        <!-- Card fixo 3 -->
+        <div class="card-insana">
+          <span class="ci-emoji">🍜🧀</span>
+          <h3>Macarrão Instantâneo Três Queijos Filosófico</h3>
+          <p>
+            Cozinhar o macarrão, misturar com qualquer queijo
+            disponível (pode ser requeijão), adicionar pimenta
+            do reino e fingir que estudou na França.
+          </p>
+          <span class="badge">🎓 Gourmet duvidoso</span>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+
+  <!-- ── RODAPÉ ── -->
+  <footer>
+    Feito para salvar sua fome <span>🍕</span> — nenhum ingrediente foi maltratado na produção deste site
+  </footer>
+
+
+  <!-- =============================================
+       JAVASCRIPT INTERNO — LÓGICA DA RECEITA
+       ============================================= -->
+  <script>
+
+    // ── LISTA DE RECEITAS ──
+    // Cada receita tem: nome, emoji, e uma função que recebe
+    // os ingredientes e retorna um modo de preparo engraçado.
+    var receitas = [
+      {
+        nome: "Super Omelete Turbo",
+        emoji: "🍳",
+        // A função recebe a lista de ingredientes como texto
+        preparo: function(ing) {
+          return "Quebre uns ovos numa frigideira bem quente, jogue " + ing +
+            " por cima sem cerimônia, mexa tudo como se soubesse o que está fazendo " +
+            "e dobre ao meio. Sirva com a confiança de um chef estrelado. Bom apetite!";
+        }
+      },
+      {
+        nome: "Refogado Misterioso da Meia-Noite",
+        emoji: "🌙",
+        preparo: function(ing) {
+          return "Aqueça uma panela no fogo ALTO (bem alto mesmo), jogue " + ing +
+            " tudo de uma vez fazendo o maior barulho possível, refogue por 5 minutos " +
+            "e finalize com um fio de azeite pra parecer que foi intencional. " +
+            "Funciona 73% das vezes.";
+        }
+      },
+      {
+        nome: "Arroz Supremo Estilo Improvisado",
+        emoji: "🍚",
+        preparo: function(ing) {
+          return "Cozinhe o arroz normalmente. Aí é só jogar " + ing +
+            " na frigideira com um pouco de manteiga, temperar com sal e alho " +
+            "(se não tiver, chore um pouco e coloque sal mesmo), misturar tudo " +
+            "e servir como se fosse receita de família secreta.";
+        }
+      },
+      {
+        nome: "Macarronada de Emergência Deluxe",
+        emoji: "🍝",
+        preparo: function(ing) {
+          return "Cozinhe qualquer macarrão que tiver em casa. Numa frigideira, " +
+            "refogue " + ing + " com azeite e alho (improvise o que não tiver). " +
+            "Misture com o macarrão, jogue queijo por cima e declare que é uma " +
+            "receita italiana autêntica. Os italianos vão chorar, mas de emoção.";
+        }
+      },
+      {
+        nome: "Torrada Gourmet de Última Hora",
+        emoji: "🍞",
+        preparo: function(ing) {
+          return "Torre o pão até ficar dourado e crocante. Espalhe por cima " +
+            ing + " de um jeito artístico (qualquer jeito parece artístico numa torrada). " +
+            "Finalize com uma pitada de pimenta do reino e tire uma foto antes de comer " +
+            "porque seus seguidores precisam saber.";
+        }
+      },
+      {
+        nome: "Sopa Filosófica do Que Sobrou",
+        emoji: "🍲",
+        preparo: function(ing) {
+          return "Coloque água pra ferver numa panela grande. Jogue " + ing +
+            " dentro sem pensar muito. Adicione um cubo de caldo de galinha ou " +
+            "sal mesmo se não tiver. Cozinhe até tudo ficar mole e chame de " +
+            "'sopa minestrone' — ninguém vai saber a diferença.";
+        }
+      },
+      {
+        nome: "Wrap Explosivo Estilo Fusão",
+        emoji: "🌯",
+        preparo: function(ing) {
+          return "Pegue qualquer coisa redonda que possa enrolar (pão de forma, " +
+            "tortilha, o que tiver). Coloque " + ing + " por cima em camadas caprichadas. " +
+            "Enrole com força como se sua vida dependesse disso. Corte ao meio na diagonal " +
+            "pois isso misteriosamente faz qualquer coisa parecer mais gostosa.";
+        }
+      },
+      {
+        nome: "Fritada Caótica Multiingrediente",
+        emoji: "🥘",
+        preparo: function(ing) {
+          return "Aqueça bastante óleo numa frigideira. Jogue " + ing +
+            " na ordem que vier na cabeça — não existe ordem errada na arte. " +
+            "Frite tudo junto até dourar, tempere com o que tiver no armário e " +
+            "sirva com arroz branco. Chame de 'fusão asiática' pra impressionar.";
+        }
+      },
+      {
+        nome: "Sanduíche Absurdo de Alto Nível",
+        emoji: "🥪",
+        preparo: function(ing) {
+          return "Pegue dois pães (ou um de forma dobrado, sem julgamentos). " +
+            "Monte dentro tudo que tiver de " + ing + " em camadas épicas. " +
+            "Aperte bem com as duas mãos, corte ao meio e contemple sua obra. " +
+            "Acompanhe com qualquer suco ou refrigerante que tiver. Magistral.";
+        }
+      },
+      {
+        nome: "Risoto Inventado de Improviso",
+        emoji: "🍛",
+        preparo: function(ing) {
+          return "Refogue " + ing + " na manteiga com muito alho. Adicione " +
+            "arroz cru e cubra com caldo quente aos poucos, mexendo sem parar " +
+            "por 18 minutos enquanto ouve música dramática. Finalize com queijo, " +
+            "chame de risoto e aceite os elogios com humildade.";
+        }
+      },
+      {
+        nome: "Tapioca Maluca de Fusão",
+        emoji: "🫓",
+        preparo: function(ing) {
+          return "Prepare a tapioca na frigideira seca até grudar. Recheie com " +
+            ing + " sem se preocupar se faz sentido — na tapioca, tudo faz sentido. " +
+            "Dobre ao meio e coma em pé mesmo, que isso faz parte da experiência.";
+        }
+      },
+      {
+        nome: "Bowl Modernoso do Chef Preguiçoso",
+        emoji: "🥗",
+        preparo: function(ing) {
+          return "Pegue uma tigela grande e bonita (isso é 80% do resultado). " +
+            "Jogue " + ing + " lá dentro de forma estética. Regue com azeite, " +
+            "limão e um toque de sal grosso. Chame de 'bowl nutritivo' e publique " +
+            "no Instagram antes de misturar tudo e devorar sem cerimônia.";
+        }
+      }
+    ];
+
+    // ── FUNÇÃO PRINCIPAL: GERAR RECEITA ──
+    function gerarReceita() {
+
+      // 1. Pega o texto do campo
+      var texto = document.getElementById('campo-ingredientes').value.trim();
+
+      // 2. Avisa se o campo estiver vazio
+      if (texto === '') {
+        alert('✋ Ei! Coloca pelo menos um ingrediente aí, né? 😄');
+        document.getElementById('campo-ingredientes').focus();
+        return;
+      }
+
+      // 3. Divide os ingredientes por vírgula e limpa espaços
+      var lista = texto.split(',').map(function(i) { return i.trim(); });
+
+      // Remove ingredientes vazios (ex: vírgula no final)
+      lista = lista.filter(function(i) { return i.length > 0; });
+
+      // 4. Formata os ingredientes em texto legível
+      //    Ex: ["ovo", "tomate"] → "ovo e tomate"
+      var ingredientesTexto;
+      if (lista.length === 1) {
+        ingredientesTexto = lista[0];
+      } else if (lista.length === 2) {
+        ingredientesTexto = lista[0] + ' e ' + lista[1];
+      } else {
+        // Junta todos com vírgula exceto o último, que leva "e"
+        var inicio = lista.slice(0, -1).join(', ');
+        ingredientesTexto = inicio + ' e ' + lista[lista.length - 1];
+      }
+
+      // 5. Sorteia uma receita aleatória da lista
+      var indice = Math.floor(Math.random() * receitas.length);
+      var receita = receitas[indice];
+
+      // 6. Preenche o card de resultado
+      document.getElementById('emoji-resultado').textContent  = receita.emoji;
+      document.getElementById('nome-receita').textContent     = receita.nome + ' de ' + ingredientesTexto;
+      document.getElementById('descricao-receita').textContent = receita.preparo(ingredientesTexto);
+
+      // 7. Cria as tags dos ingredientes
+      var tagsDiv = document.getElementById('tags-ingredientes');
+      tagsDiv.innerHTML = ''; // limpa tags anteriores
+
+      lista.forEach(function(ing) {
+        var tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.textContent = '🥄 ' + ing;
+        tagsDiv.appendChild(tag);
+      });
+
+      // 8. Mostra o card com animação (reinicia o fadeUp)
+      var card = document.getElementById('card-resultado');
+      card.style.display = 'none';    // esconde brevemente
+      card.style.animation = 'none';  // remove animação antiga
+
+      // Pequeno delay para reiniciar a animação (truque de CSS)
+      setTimeout(function() {
+        card.style.display = 'block';
+        card.style.animation = 'fadeUp 0.6s ease both';
+      }, 50);
+
+      // 9. Mostra o botão "Gerar Outra Ideia"
+      document.getElementById('btn-outra').style.display = 'flex';
+
+      // 10. Rola suavemente até o card de resultado
+      setTimeout(function() {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+
+    // Permite pressionar Enter no campo para gerar receita
+    document.getElementById('campo-ingredientes').addEventListener('keydown', function(e) {
+      // Ctrl+Enter ou Cmd+Enter gera a receita
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        gerarReceita();
+      }
+    });
+
+  </script>
+
+</body>
+</html>
